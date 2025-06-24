@@ -1,36 +1,51 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(LoggingInterceptor.name);
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    // TODO: Implement comprehensive request/response logging
-    // This interceptor should:
-    // 1. Log incoming requests with relevant details
-    // 2. Measure and log response time
-    // 3. Log outgoing responses
-    // 4. Include contextual information like user IDs when available
-    // 5. Avoid logging sensitive information
-
-    const req = context.switchToHttp().getRequest();
-    const method = req.method;
-    const url = req.url;
+    const httpContext = context.switchToHttp();
+    const request = httpContext.getRequest<Request>();
+    const response = httpContext.getResponse<Response>();
     const now = Date.now();
 
-    // Basic implementation (to be enhanced by candidates)
-    this.logger.log(`Request: ${method} ${url}`);
+    const { method, originalUrl: url, body, query, params, user } = request;
+
+    // Safe fields to log - do NOT log passwords, tokens, etc.
+    const safeBody = { ...body };
+    delete safeBody.password;
+    delete safeBody.token;
+
+    const userInfo = user ? `UserID: ${user}` : 'Unauthenticated';
+
+    this.logger.log(
+      `Incoming Request -> ${method} ${url} | ${userInfo} | Body: ${JSON.stringify(
+        safeBody,
+      )} | Query: ${JSON.stringify(query)} | Params: ${JSON.stringify(params)}`,
+    );
 
     return next.handle().pipe(
-      tap({
-        next: val => {
-          this.logger.log(`Response: ${method} ${url} ${Date.now() - now}ms`);
-        },
-        error: err => {
-          this.logger.error(`Error in ${method} ${url} ${Date.now() - now}ms: ${err.message}`);
-        },
+      tap(resBody => {
+        const responseTime = Date.now() - now;
+        this.logger.log(
+          `Response Sent <- ${method} ${url} | ${userInfo} | Status: ${
+            response.statusCode
+          } | Time: ${responseTime}ms | Response: ${JSON.stringify(resBody)}`,
+        );
+      }),
+      catchError(error => {
+        const responseTime = Date.now() - now;
+        this.logger.error(
+          `Error in ${method} ${url} | ${userInfo} | Time: ${responseTime}ms | Message: ${
+            error.message
+          }`,
+          error.stack,
+        );
+        throw error;
       }),
     );
   }

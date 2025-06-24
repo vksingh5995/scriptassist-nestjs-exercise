@@ -1,4 +1,5 @@
 import { Permissions } from '@modules/permission/entities/permission.entity';
+import { User } from '@modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -10,19 +11,18 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RolePermissions } from './rolePermission.entity';
 
 // Main Role Entity
 @Entity('roles')
 export class Role {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: number;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'int' })
-  organizationId: number;
+  @Column({ type: 'varchar' })
+  slug: string;
 
   @ManyToMany(() => Permissions, permissions => permissions.roles)
   @JoinTable({
@@ -34,9 +34,6 @@ export class Role {
 
   @Column({ type: 'text', nullable: true })
   description: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  roleType: string;
 
   @Column({ type: 'boolean', nullable: true, default: false })
   isPrimary: boolean;
@@ -56,6 +53,6 @@ export class Role {
   // Virtual field for permission count (not stored in DB)
   permissionCount: number;
 
-  @OneToMany(() => RolePermissions, rp => rp.role)
-  rolePermissions: RolePermissions;
+  @OneToMany(() => User, user => user.role)
+  users: User[];
 }

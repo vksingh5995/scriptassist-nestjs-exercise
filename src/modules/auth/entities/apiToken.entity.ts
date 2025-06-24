@@ -1,29 +1,14 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('api_tokens')
 export class ApiToken {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  tokenId: string;
 
   @Column({
     type: 'int',
   })
   userId: number;
-
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  type: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  token: string;
 
   @Column({
     type: 'timestamp',
@@ -33,7 +18,4 @@ export class ApiToken {
 
   @CreateDateColumn()
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

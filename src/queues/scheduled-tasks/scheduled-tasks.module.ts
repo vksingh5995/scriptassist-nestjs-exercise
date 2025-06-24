@@ -6,11 +6,11 @@ import { TasksModule } from '../../modules/tasks/tasks.module';
 
 @Module({
   imports: [
+    TasksModule,
     ScheduleModule.forRoot(),
     BullModule.registerQueue({
       name: 'task-processing',
     }),
-    TasksModule,
   ],
   providers: [OverdueTasksService],
   exports: [OverdueTasksService],

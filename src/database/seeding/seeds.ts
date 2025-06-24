@@ -9,7 +9,7 @@ import { tasks } from './seed-data/tasks.seed';
 config();
 
 // Define the data source
-const AppDataSource = new DataSource({
+export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432', 10),
@@ -33,7 +33,7 @@ async function main() {
     console.log('Existing data cleared');
 
     // Seed users
-    await AppDataSource.getRepository(User).save(users);
+    await users(AppDataSource);
     console.log('Users seeded successfully');
 
     // Seed tasks

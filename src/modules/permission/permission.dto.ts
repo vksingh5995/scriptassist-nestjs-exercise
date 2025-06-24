@@ -1,83 +1,31 @@
-import { IsInt, IsString, IsEnum, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString } from 'class-validator';
+import { Permissions } from './entities/permission.entity';
 
-// ENUM
-export enum AppName {
-  MasterApp = 'MasterApp',
-  TaskManagement = 'TaskManagement',
-  MaterialManagement = 'MaterialManagement',
-  VehicleManagement = 'VehicleManagement',
-}
-
-// Create DTO
+// DTO for creating a permission
 export class CreatePermissionDto {
-  @IsEnum(AppName)
-  appName: AppName;
+  @IsString()
+  name: string;
 
   @IsString()
-  action: string;
+  permissionGroup: string;
 
   @IsString()
   module: string;
 
   @IsString()
-  description: string;
+  @IsOptional()
+  description?: string;
 }
 
-// Update DTO (extends Create with `id`)
+// DTO for updating a permission
 export class UpdatePermissionDto extends CreatePermissionDto {
   @IsInt()
   id: number;
 }
 
-// PERMISSION GROUP STRUCTURES
-
-export class PermissionDto {
-  @IsInt()
-  id: number;
-
-  @IsString()
-  module: string;
-
-  @IsString()
-  action: string;
-
-  @IsString()
-  description: string;
-
-  @IsString()
-  slug: string;
-}
-
-export class PermissionGroupDto {
-  @IsString()
-  name: string;
-
-  @ValidateNested({ each: true })
-  @Type(() => PermissionDto)
-  permissions: PermissionDto[];
-}
-
-export class AppPermissionsDto {
-  @IsString()
-  appName: string;
-
-  @ValidateNested({ each: true })
-  @Type(() => PermissionGroupDto)
-  modules: PermissionGroupDto[];
-}
-
-export class DynamicPermissionsDto {
-  @ValidateNested({ each: true })
-  @Type(() => AppPermissionsDto)
-  apps: AppPermissionsDto[];
-}
-
-// OPTIONAL - Hierarchical Grouping DTOs (no decorators needed for internal use)
-
-export class Group {
-  name: string;
-  permissions: Permissions[];
+// Types for grouping permissions (used for response shaping or service logic)
+export class PermissionGroup {
+  modules: Module[];
 }
 
 export class Module {
@@ -85,6 +33,7 @@ export class Module {
   groups: Group[];
 }
 
-export class PermissionGroup {
-  modules: Module[];
+export class Group {
+  name: string;
+  permissions: Permissions[];
 }

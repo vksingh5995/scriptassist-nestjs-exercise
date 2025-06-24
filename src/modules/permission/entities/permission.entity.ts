@@ -1,46 +1,54 @@
 import { Role } from '@modules/role/entities/roles.entity';
+import slugify from 'slugify';
 import {
-  Entity,
+  BeforeInsert,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
   ManyToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('permissions')
 export class Permissions {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  appName: string;
+  @Column({ type: 'varchar' })
+  name: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  groupName: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  module: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  action: string;
-
-  @Column({ type: 'varchar', length: 255, unique: true })
+  @Column({ type: 'varchar', unique: true })
   slug: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar' })
+  permissionGroup: string;
+
+  @Column({ type: 'varchar' })
+  module: string;
+
+  @Column({ type: 'varchar', nullable: true })
   description: string;
 
   @ManyToMany(() => Role, role => role.permissions)
   roles: Role[];
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ type: 'timestamptz', nullable: true })
-  deletedAt: Date | null;
+  @DeleteDateColumn()
+  deletedAt: Date;
+
+  @BeforeInsert()
+  async makeSlug() {
+    if (this.name && !this.slug) {
+      this.slug = slugify(`${this.module}:${this.permissionGroup}:${this.name}`, { lower: true });
+    }
+  }
 }
+
+export type PermissionKey = keyof Permissions;
